@@ -173,13 +173,19 @@ const getList = async ({
         .range(rangeFrom, rangeTo);
 
     if (q) {
+        let queryString = ""; //create a query string to put into an or( ) selector
         const fullTextSearchFields = Array.isArray(resourceOptions)
             ? resourceOptions
             : resourceOptions.fullTextSearchFields;
 
-        fullTextSearchFields.forEach(field => {
-            query = query.ilike(field, `%${q}%`);
+        fullTextSearchFields.forEach((field, index, array) => {
+            queryString += `${field}.ilike.%${q}%`; //concatenate the ilike queries into one string
+            //query = query.ilike(field, `%${q}%`); //old method with successive ilike
+            if (index < array.length - 1) {
+                queryString += ","; //add commas between the selectors, but not at the end
+              }
         });
+        query.or(queryString);
     }
 
     const { data, error, count } = await query;
